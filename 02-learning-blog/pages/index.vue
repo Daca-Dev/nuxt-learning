@@ -19,11 +19,6 @@ export default {
       return this.$store.getters.loadedPosts
     }
   }
-  // data() {
-  //   return {
-  //     loadedPosts: []
-  //   };
-  // },
 };
 </script>
 

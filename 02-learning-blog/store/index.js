@@ -4,7 +4,8 @@ import axios from 'axios';
 const createStore = () => {
   return new Vuex.Store({
     state: {
-      loadedPosts: []
+      loadedPosts: [],
+      token: null,
     },
     mutations: {
       setPosts(state, posts) {
@@ -19,10 +20,16 @@ const createStore = () => {
         );
         state.loadedPosts[index] = editedPost;
       },
+      setToken(state, token) {
+        state.token = token;
+      },
+      clearToken(state) {
+        state.token = null;
+      }
     },
     actions: {
       nuxtServerInit(vuexContext, context) {
-        return axios.get('https://nuxt-course-41152-default-rtdb.firebaseio.com/posts.json')
+        return axios.get(`${process.env.fbBaseUrl}/posts.json`)
           .then(response => {
             const { data } = response;
             const postArray = Object.keys(data).map(key => ({
@@ -45,7 +52,7 @@ const createStore = () => {
 
         // the URL ends with .json just for a rule of firebase
         return axios.post(
-          'https://nuxt-course-41152-default-rtdb.firebaseio.com/posts.json',
+          `${process.env.fbBaseUrl}/posts.json?auth=${vuexContext.state.token}`,
           createdPost,
         )
           .then(response => {
@@ -59,7 +66,7 @@ const createStore = () => {
       },
       editPost(vuexContext, { postId, editedPost }) {
         return axios.put(
-          `https://nuxt-course-41152-default-rtdb.firebaseio.com/posts/${postId}.json`,
+          `${process.env.fbBaseUrl}/posts/${postId}.json?auth=${vuexContext.state.token}`,
           editedPost,
         )
         .then(response => {
@@ -69,11 +76,37 @@ const createStore = () => {
       },
       setPosts(vuexContext, posts) {
         vuexContext.commit("setPosts", posts);
+      },
+      authenticateUser(vuexContext, authData) {
+        const url = authData.isLogin
+        ? `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.fbApiToken}`
+        : `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.fbApiToken}`
+
+        this.$axios.$post(url,
+          {
+            email: authData.email,
+            password: authData.password,
+            returnSecureToken: true,
+          },
+        )
+        .then(resp => {
+          vuexContext.commit("setToken", resp.idToken);
+          vuexContext.dispatch('isAuthenticated', res.expiresIn * 1000)
+        })
+        .catch(err => console.err)
+      },
+      isAuthenticated(duration) {
+        setTimeout(() => {
+          vuexContext.commit("clearToken");
+        }, duration)
       }
     },
     getters: {
       loadedPosts(state) {
         return state.loadedPosts;
+      },
+      isAuthenticated(state) {
+        return state.token != null;
       }
     }
   });

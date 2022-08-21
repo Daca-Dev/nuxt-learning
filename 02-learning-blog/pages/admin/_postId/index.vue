@@ -17,7 +17,7 @@ export default {
   },
   asyncData(context) {
     const { postId } = context.route.params;
-    const url = `https://nuxt-course-41152-default-rtdb.firebaseio.com/posts/${postId}.json`;
+    const url = `${process.env.fbBaseUrl}/posts/${postId}.json`;
 
     return axios.get(url).then(response => ({
         loadedPost: response.data

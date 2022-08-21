@@ -38,7 +38,13 @@ module.exports = {
   ** Nuxt.js modules
   */
   modules: [
+    '@nuxtjs/axios',
   ],
+
+  env: {
+    fbBaseUrl: process.env.fbBaseUrl || 'https://nuxt-course-41152-default-rtdb.firebaseio.com',
+    fbApiToken: process.env.fbApiToken || 'AIzaSyBodTvsKwvKWceAdFuUL-b-zyJlPgtgoaE',
+  },
 
   /*
   ** Build configuration
@@ -50,5 +56,8 @@ module.exports = {
     extend(config, ctx) {
 
     }
+  },
+  routes: {
+    middleware: 'log'
   }
 }
